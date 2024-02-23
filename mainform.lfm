@@ -35,6 +35,7 @@ object frmMain: TfrmMain
     Top = 8
     Width = 416
     TabOrder = 1
+    OnKeyPress = txFilenameKeyPress
   end
   object btFilename: TButton
     Left = 528
@@ -148,7 +149,6 @@ object frmMain: TfrmMain
     Caption = 'Header Row'
     TabOrder = 4
     OnChange = tgHeaderRowChange
-    OnClick = tgHeaderRowClick
   end
   object GroupBox2: TGroupBox
     Left = 10
@@ -298,7 +298,6 @@ object frmMain: TfrmMain
     ItemHeight = 0
     Sorted = True
     TabOrder = 7
-    OnChange = cbProfileNamesChange
     OnSelect = cbProfileNamesSelect
   end
   object Label8: TLabel

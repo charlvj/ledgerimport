@@ -57,11 +57,10 @@ type
     procedure btFilenameClick(Sender : TObject);
     procedure btSaveProfileClick(Sender : TObject);
     procedure btRemovePatternClick(Sender : TObject);
-    procedure cbProfileNamesChange(Sender : TObject);
     procedure cbProfileNamesSelect(Sender : TObject);
     procedure FormCreate(Sender : TObject);
     procedure tgHeaderRowChange(Sender : TObject);
-    procedure tgHeaderRowClick(Sender : TObject);
+    procedure txFilenameKeyPress(Sender : TObject; var Key : char);
     procedure txPayeeAccountEnter(Sender : TObject);
     procedure txPayeeAccountExit(Sender : TObject);
     procedure txPayeePatternEnter(Sender : TObject);
@@ -71,7 +70,7 @@ type
     _profileFile : TProfileFile;
     _currentProfile : PImportProfile;
 
-    procedure importFile;
+    procedure importFile(filename : string);
     procedure displayProfile(profile : PImportProfile);
     procedure assignProfile(profile : PImportProfile);
     procedure parseTransactions;
@@ -100,19 +99,15 @@ begin
      txPayeePattern.text := 'Payee Pattern';
 end;
 
-procedure TfrmMain.importFile;
+procedure TfrmMain.importFile(filename : string);
 var
   col, c, colCount : integer;
   colName : string;
 begin
-  if dlgOpenDialog.execute then
-  begin
-    txFilename.text := dlgOpenDialog.filename;
-    gridData.Clear;
-    gridData.LoadFromCSVFile(txFilename.text, ',', true, 0, true); //, ',', tgHeaderRow.checked);
-    gridData.FixedRows := 1;
-    gridData.AutoSizeColumns;
-  end;
+  gridData.Clear;
+  gridData.LoadFromCSVFile(filename, ',', true, 0, true); //, ',', tgHeaderRow.checked);
+  gridData.FixedRows := 1;
+  gridData.AutoSizeColumns;
 end;
 
 procedure TfrmMain.displayProfile(profile : PImportProfile);
@@ -266,8 +261,12 @@ end;
 
 procedure TfrmMain.btFilenameClick(Sender : TObject);
 begin
-  importFile;
-  tgHeaderRowChange(sender);
+  if dlgOpenDialog.execute then
+  begin
+    txFilename.text := dlgOpenDialog.filename;
+    importFile(dlgOpenDialog.filename);
+    tgHeaderRowChange(sender);
+  end;
 end;
 
 procedure TfrmMain.btSaveProfileClick(Sender : TObject);
@@ -297,11 +296,6 @@ begin
 
   if assigned(item) then
     item.Delete;
-end;
-
-procedure TfrmMain.cbProfileNamesChange(Sender : TObject);
-begin
-
 end;
 
 procedure TfrmMain.cbProfileNamesSelect(Sender : TObject);
@@ -365,9 +359,13 @@ begin
   displayProfile(_currentProfile);
 end;
 
-procedure TfrmMain.tgHeaderRowClick(Sender : TObject);
+procedure TfrmMain.txFilenameKeyPress(Sender : TObject; var Key : char);
 begin
-
+  if key = #13 then
+  begin
+    importFile(txFilename.Text);
+    key := #0;
+  end;
 end;
 
 procedure TfrmMain.btAddPatternClick(Sender : TObject);
