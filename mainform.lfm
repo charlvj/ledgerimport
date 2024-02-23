@@ -72,7 +72,7 @@ object frmMain: TfrmMain
       ParentColor = False
     end
     object Label4: TLabel
-      Left = 325
+      Left = 256
       Height = 17
       Top = 25
       Width = 45
@@ -80,7 +80,7 @@ object frmMain: TfrmMain
       ParentColor = False
     end
     object Label5: TLabel
-      Left = 325
+      Left = 256
       Height = 17
       Top = 69
       Width = 58
@@ -91,7 +91,7 @@ object frmMain: TfrmMain
       Left = 96
       Height = 33
       Top = 15
-      Width = 200
+      Width = 128
       ItemHeight = 0
       Style = csDropDownList
       TabOrder = 0
@@ -100,28 +100,44 @@ object frmMain: TfrmMain
       Left = 96
       Height = 33
       Top = 61
-      Width = 200
+      Width = 128
       ItemHeight = 0
       Style = csDropDownList
       TabOrder = 1
     end
     object cbNotes: TComboBox
-      Left = 392
+      Left = 320
       Height = 33
       Top = 15
-      Width = 200
+      Width = 128
       ItemHeight = 0
       Style = csDropDownList
       TabOrder = 2
     end
     object cbAmount: TComboBox
-      Left = 392
+      Left = 320
       Height = 33
       Top = 61
-      Width = 200
+      Width = 128
       ItemHeight = 0
       Style = csDropDownList
       TabOrder = 3
+    end
+    object Label11: TLabel
+      Left = 480
+      Height = 17
+      Top = 25
+      Width = 72
+      Caption = 'Reference:'
+    end
+    object cbReference: TComboBox
+      Left = 560
+      Height = 33
+      Top = 15
+      Width = 128
+      ItemHeight = 0
+      Style = csDropDownList
+      TabOrder = 4
     end
   end
   object tgHeaderRow: TCheckBox
@@ -132,6 +148,7 @@ object frmMain: TfrmMain
     Caption = 'Header Row'
     TabOrder = 4
     OnChange = tgHeaderRowChange
+    OnClick = tgHeaderRowClick
   end
   object GroupBox2: TGroupBox
     Left = 10

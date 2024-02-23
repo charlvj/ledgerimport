@@ -21,7 +21,9 @@ type
     btCreateLedgerFile : TButton;
     btDeleteProfile : TButton;
     cbProfileNames : TComboBox;
+    cbReference : TComboBox;
     DividerBevel1 : TDividerBevel;
+    Label11 : TLabel;
     txDefaultOutAccount : TEdit;
     Label10 : TLabel;
     Label8 : TLabel;
@@ -59,6 +61,7 @@ type
     procedure cbProfileNamesSelect(Sender : TObject);
     procedure FormCreate(Sender : TObject);
     procedure tgHeaderRowChange(Sender : TObject);
+    procedure tgHeaderRowClick(Sender : TObject);
     procedure txPayeeAccountEnter(Sender : TObject);
     procedure txPayeeAccountExit(Sender : TObject);
     procedure txPayeePatternEnter(Sender : TObject);
@@ -105,11 +108,10 @@ begin
   if dlgOpenDialog.execute then
   begin
     txFilename.text := dlgOpenDialog.filename;
+    gridData.Clear;
     gridData.LoadFromCSVFile(txFilename.text, ',', true, 0, true); //, ',', tgHeaderRow.checked);
     gridData.FixedRows := 1;
     gridData.AutoSizeColumns;
-
-
   end;
 end;
 
@@ -118,21 +120,38 @@ var
   mapping : PPayeeMapping;
   item : TListItem;
 begin
-  txAccount.text := profile^.account;
-  cbDate.ItemIndex := profile^.dateColumn;
-  cbPayee.ItemIndex := profile^.payeeColumn;
-  cbNotes.ItemIndex := profile^.notesColumn;
-  cbAmount.ItemIndex := profile^.amountColumn;
-  txDefaultInAccount.text := profile^.defaultInAccount;
-  txDefaultOutAccount.text := profile^.defaultOutAccount;
-
-  lsPatterns.Clear;
-  for mapping in profile^.payeeMappings do
+  if assigned(profile) then
   begin
-    item := lsPatterns.Items.Add;
-    item.Caption := transDirectionAsString(mapping^.direction);
-    item.SubItems.add(mapping^.payeePattern);
-    item.SubItems.add(mapping^.payeeAccount);
+    txAccount.text := profile^.account;
+    cbDate.ItemIndex := profile^.dateColumn;
+    cbPayee.ItemIndex := profile^.payeeColumn;
+    cbNotes.ItemIndex := profile^.notesColumn;
+    cbReference.ItemIndex := profile^.refColumn;
+    cbAmount.ItemIndex := profile^.amountColumn;
+    txDefaultInAccount.text := profile^.defaultInAccount;
+    txDefaultOutAccount.text := profile^.defaultOutAccount;
+
+    lsPatterns.Clear;
+    for mapping in profile^.payeeMappings do
+    begin
+      item := lsPatterns.Items.Add;
+      item.Caption := transDirectionAsString(mapping^.direction);
+      item.SubItems.add(mapping^.payeePattern);
+      item.SubItems.add(mapping^.payeeAccount);
+    end;
+  end
+  else
+  begin
+    txAccount.text := '';
+    cbDate.ItemIndex := -1;
+    cbPayee.ItemIndex := -1;
+    cbNotes.ItemIndex := -1;
+    cbReference.ItemIndex := -1;
+    cbAmount.ItemIndex := -1;
+    txDefaultInAccount.text := '';
+    txDefaultOutAccount.text := '';
+
+    lsPatterns.Clear;
   end;
 end;
 
@@ -145,6 +164,7 @@ begin
   profile^.dateColumn := cbDate.ItemIndex;
   profile^.payeeColumn := cbPayee.ItemIndex;
   profile^.notesColumn := cbNotes.ItemIndex;
+  profile^.refColumn := cbReference.ItemIndex;
   profile^.amountColumn := cbAmount.ItemIndex;
   profile^.defaultInAccount := txDefaultInAccount.text;
   profile^.defaultOutAccount := txDefaultOutAccount.text;
@@ -186,6 +206,7 @@ begin
       transaction.date := parseDateTime(gridData.rows[row][profile^.dateColumn]);
       transaction.payee := gridData.rows[row][profile^.payeeColumn];
       transaction.notes := gridData.rows[row][profile^.notesColumn];
+      transaction.reference := gridData.rows[row][profile^.refColumn];
       transaction.amount := parseAmount(gridData.rows[row][profile^.amountColumn]);
 
       if transaction.amount > 0 then
@@ -328,6 +349,7 @@ begin
   cbDate.items.Clear;
   cbPayee.items.clear;
   cbNotes.items.clear;
+  cbReference.items.clear;
   cbAmount.items.clear;
   for col := 0 to colCount - 1 do
   begin
@@ -335,8 +357,16 @@ begin
     cbDate.items.add(colName);
     cbPayee.items.add(colName);
     cbNotes.items.add(colName);
+    cbReference.items.add(colName);
     cbAmount.items.add(colName);
   end;
+
+  // redisplay the profile to ensure the columns are set properly
+  displayProfile(_currentProfile);
+end;
+
+procedure TfrmMain.tgHeaderRowClick(Sender : TObject);
+begin
 
 end;
 

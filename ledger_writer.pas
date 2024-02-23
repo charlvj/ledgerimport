@@ -30,7 +30,9 @@ var
   amount : currency;
 begin
   amount := abs(transaction.amount);
-  lines.add(format('%s  %s', [formatDateTime('YYYY/MM/DD', transaction.date), transaction.payee]));
+  lines.add(format('%s  (%s)  %s', [formatDateTime('YYYY/MM/DD', transaction.date), transaction.reference, transaction.payee]));
+  if transaction.notes <> '' then
+    lines.add(format('    ; %s', [transaction.notes]));
   lines.add(format('    %-40s        %s', [transaction.inAccount, amountToStr(amount)]));
   lines.add(format('    %-40s        %s', [transaction.outAccount, amountToStr(-amount)]));
 end;

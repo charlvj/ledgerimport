@@ -19,15 +19,18 @@ type
     _notes : string;
     _outAccount : string;
     _payee : string;
+    _reference : string;
     procedure Setamount(AValue : currency);
     procedure Setdate(AValue : TDateTime);
     procedure SetinAccount(AValue : string);
     procedure Setnotes(AValue : string);
     procedure SetoutAccount(AValue : string);
     procedure Setpayee(AValue : string);
+    procedure Setreference(AValue : string);
   public
     property date : TDateTime read _date write Setdate;
     property payee : string read _payee write Setpayee;
+    property reference : string read _reference write Setreference;
     property amount : currency read _amount write Setamount;
     property inAccount : string read _inAccount write SetinAccount;
     property outAccount : string read _outAccount write SetoutAccount;
@@ -85,6 +88,12 @@ procedure TTransaction.Setpayee(AValue : string);
 begin
   if _payee = AValue then Exit;
   _payee := AValue;
+end;
+
+procedure TTransaction.Setreference(AValue : string);
+begin
+  if _reference = AValue then Exit;
+  _reference := AValue;
 end;
 
 end.

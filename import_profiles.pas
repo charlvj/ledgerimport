@@ -26,6 +26,7 @@ type
     dateColumn : integer;
     payeeColumn : integer;
     notesColumn : integer;
+    refColumn : integer;
     amountColumn : integer;
     defaultInAccount : string;
     defaultOutAccount : string;
@@ -115,6 +116,7 @@ begin
     jsonProfile.add('dateColumn', profile^.dateColumn);
     jsonProfile.add('payeeColumn', profile^.payeeColumn);
     jsonProfile.add('notesColumn', profile^.notesColumn);
+    jsonProfile.add('refColumn', profile^.refColumn);
     jsonProfile.add('amountColumn', profile^.amountColumn);
     jsonProfile.add('defaultInAccount', profile^.defaultInAccount);
     jsonProfile.add('defaultOutAccount', profile^.defaultOutAccount);
@@ -140,7 +142,7 @@ begin
   assignFile(profilesFile, _filename);
   Rewrite(profilesFile);
   try
-    writeln(profilesFile, jsonDoc.AsJSON);
+    writeln(profilesFile, jsonDoc.FormatJSON());
   finally
     closeFile(profilesFile);
   end;
@@ -182,6 +184,7 @@ begin
         profile^.dateColumn := jsonProfile.get('dateColumn', -1);
         profile^.payeeColumn := jsonProfile.get('payeeColumn', -1);
         profile^.notesColumn := jsonProfile.get('notesColumn', -1);
+        profile^.refColumn := jsonProfile.get('refColumn', -1);
         profile^.amountColumn := jsonProfile.get('amountColumn', -1);
         profile^.defaultInAccount := jsonProfile.get('defaultInAccount', 'Income:Unknown');
         profile^.defaultOutAccount := jsonProfile.get('defaultOutAccount', 'Expenses:Unknown');
