@@ -3,6 +3,7 @@ test.ledger
 ppas.sh
 
 # Lazarus compiler-generated binaries (safe to delete)
+ledger-importer
 *.exe
 *.dll
 *.so
