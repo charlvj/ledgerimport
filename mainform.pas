@@ -22,8 +22,10 @@ type
     btDeleteProfile : TButton;
     cbProfileNames : TComboBox;
     cbReference : TComboBox;
+    cbAmountNegative : TComboBox;
     DividerBevel1 : TDividerBevel;
     Label11 : TLabel;
+    Label12 : TLabel;
     txDefaultOutAccount : TEdit;
     Label10 : TLabel;
     Label8 : TLabel;
@@ -57,8 +59,11 @@ type
     procedure btFilenameClick(Sender : TObject);
     procedure btSaveProfileClick(Sender : TObject);
     procedure btRemovePatternClick(Sender : TObject);
+    procedure cbAmount1Change(Sender : TObject);
+    procedure cbDateChange(Sender : TObject);
     procedure cbProfileNamesSelect(Sender : TObject);
     procedure FormCreate(Sender : TObject);
+    procedure Label5Click(Sender : TObject);
     procedure tgHeaderRowChange(Sender : TObject);
     procedure txFilenameKeyPress(Sender : TObject; var Key : char);
     procedure txPayeeAccountEnter(Sender : TObject);
@@ -74,6 +79,7 @@ type
     procedure displayProfile(profile : PImportProfile);
     procedure assignProfile(profile : PImportProfile);
     procedure parseTransactions;
+    function substituteVariables(const s : string; const values : TStringArray) : string;
 
     procedure Setfilename(AValue : string);
     procedure SetprofileFile(AValue : TProfileFile);
@@ -87,9 +93,37 @@ var
 
 implementation
 
-uses transactions, conversions, ledger_file_form;
+uses strutils, transactions, conversions, ledger_file_form;
 
 {$R *.lfm}
+
+procedure comboClear(cb : TComboBox);
+begin
+  cb.Clear;
+  cb.Items.add('None');
+end;
+
+procedure comboAdd(cb : TComboBox; s : string);
+begin
+
+end;
+
+function comboGetIndex(cb : TComboBox) : integer;
+begin
+  if cb.itemIndex = -1 then
+    result := -1
+  else
+    result := cb.itemIndex - 1;
+end;
+
+procedure comboSetIndex(cb : TComboBox; itemIndex : integer);
+begin
+  if itemIndex = -1 then
+    cb.itemIndex := -1
+  else
+    cb.itemIndex := itemIndex + 1;
+end;
+
 
 { TfrmMain }
 
@@ -100,12 +134,9 @@ begin
 end;
 
 procedure TfrmMain.importFile(filename : string);
-var
-  col, c, colCount : integer;
-  colName : string;
 begin
   gridData.Clear;
-  gridData.LoadFromCSVFile(filename, ',', true, 0, true); //, ',', tgHeaderRow.checked);
+  gridData.LoadFromCSVFile(filename, ',', true, 0, true);
   gridData.FixedRows := 1;
   gridData.AutoSizeColumns;
 end;
@@ -118,11 +149,12 @@ begin
   if assigned(profile) then
   begin
     txAccount.text := profile^.account;
-    cbDate.ItemIndex := profile^.dateColumn;
-    cbPayee.ItemIndex := profile^.payeeColumn;
-    cbNotes.ItemIndex := profile^.notesColumn;
-    cbReference.ItemIndex := profile^.refColumn;
-    cbAmount.ItemIndex := profile^.amountColumn;
+    comboSetIndex(cbDate, profile^.dateColumn);
+    comboSetIndex(cbPayee, profile^.payeeColumn);
+    comboSetIndex(cbNotes, profile^.notesColumn);
+    comboSetIndex(cbReference, profile^.refColumn);
+    comboSetIndex(cbAmount, profile^.amountColumn);
+    comboSetIndex(cbAmountNegative, profile^.amountNegativeColumn);
     txDefaultInAccount.text := profile^.defaultInAccount;
     txDefaultOutAccount.text := profile^.defaultOutAccount;
 
@@ -156,11 +188,12 @@ var
   mapping : PPayeeMapping;
 begin
   profile^.account := txAccount.text;
-  profile^.dateColumn := cbDate.ItemIndex;
-  profile^.payeeColumn := cbPayee.ItemIndex;
-  profile^.notesColumn := cbNotes.ItemIndex;
-  profile^.refColumn := cbReference.ItemIndex;
-  profile^.amountColumn := cbAmount.ItemIndex;
+  profile^.dateColumn := comboGetIndex(cbDate);
+  profile^.payeeColumn := comboGetIndex(cbPayee);
+  profile^.notesColumn := comboGetIndex(cbNotes);
+  profile^.refColumn := comboGetIndex(cbReference);
+  profile^.amountColumn := comboGetIndex(cbAmount);
+  profile^.amountNegativeColumn := comboGetIndex(cbAmountNegative);
   profile^.defaultInAccount := txDefaultInAccount.text;
   profile^.defaultOutAccount := txDefaultOutAccount.text;
 
@@ -182,8 +215,8 @@ var
   row, col : integer;
   transactions : TTransactions;
   transaction : TTransaction;
-  cellValue : string;
   mappingFound : boolean;
+  columnValues : TStringArray;
 begin
   // We'll build a brand new ImportProfile from the UI in case something
   // was changed in the UI.
@@ -204,6 +237,23 @@ begin
       transaction.reference := gridData.rows[row][profile^.refColumn];
       transaction.amount := parseAmount(gridData.rows[row][profile^.amountColumn]);
 
+      if transaction.amount = 0 then
+      begin
+        // Check the amountNegativeColumn
+        transaction.amount := -1 * abs(parseAmount(gridData.rows[row][profile^.amountNegativeColumn]));
+      end;
+
+      // If it is a liability account we must negate the amount
+      if StartsStr('Liabilities', profile^.account) then
+         transaction.amount := -1 * transaction.amount;
+
+      setLength(columnValues, gridData.colCount * 2);
+      for col := 0 to gridData.ColCount - 1 do
+      begin
+        columnValues[col * 2] := gridData.rows[0][col];
+        columnValues[col * 2 + 1] := gridData.rows[row][col];
+      end;
+
       if transaction.amount > 0 then
         transaction.inAccount := profile^.account
       else
@@ -217,9 +267,9 @@ begin
                  or (transaction.amount < 0) and (mapping^.direction = trOut)) then
         begin
           if (mapping^.direction = trIn) and (transaction.amount > 0) then
-            transaction.outAccount := mapping^.payeeAccount
+            transaction.outAccount := substituteVariables(mapping^.payeeAccount, columnValues)
           else if (mapping^.direction = trOut) and (transaction.amount < 0) then
-            transaction.inAccount := mapping^.payeeAccount;
+            transaction.inAccount := substituteVariables(mapping^.payeeAccount, columnValues);
 
           mappingFound := true;
           break;
@@ -229,10 +279,12 @@ begin
       if not mappingFound then
       begin
         if transaction.amount > 0 then
-          transaction.outAccount := profile^.defaultInAccount
+          transaction.outAccount := substituteVariables(profile^.defaultInAccount, columnValues)
         else
-          transaction.inAccount := profile^.defaultOutAccount;
+          transaction.inAccount := substituteVariables(profile^.defaultOutAccount, columnValues);
       end;
+
+      setLength(columnValues, 0);
 
       transactions.add(transaction);
     end;
@@ -244,6 +296,49 @@ begin
     for transaction in transactions do
       transaction.Free;
     transactions.free;
+  end;
+end;
+
+function TfrmMain.substituteVariables(const s : string; const values : TStringArray) : string;
+  function getColumnValue(const colName : string) : string;
+  var
+    c : integer;
+  begin
+    result := '';
+    for c := 0 to gridData.ColCount - 1 do
+    begin
+      if gridData.rows[0][c] = colName then
+      begin
+        result := gridData.rows[0][c];
+        break;
+      end;
+    end;
+  end;
+
+  function getValue(const varName : string) : string;
+  var i : integer;
+  begin
+    for i := low(values) to high(values) div 2 do
+    begin
+      if values[i * 2] = varName then
+      begin
+        result := values[i * 2 + 1];
+        break;
+      end;
+    end;
+  end;
+
+var
+  c : integer;
+  v : string;
+begin
+  // We can definitely make this more efficient
+  result := s;
+  for c := 0 to gridData.ColCount - 1 do
+  begin
+    v := '${' + gridData.rows[0][c] + '}';
+    if pos(v, result) > 0 then
+       result := replaceText(result, v, getValue(gridData.rows[0][c]));
   end;
 end;
 
@@ -298,6 +393,16 @@ begin
     item.Delete;
 end;
 
+procedure TfrmMain.cbAmount1Change(Sender : TObject);
+begin
+
+end;
+
+procedure TfrmMain.cbDateChange(Sender : TObject);
+begin
+
+end;
+
 procedure TfrmMain.cbProfileNamesSelect(Sender : TObject);
 begin
   _currentProfile := _profileFile.profiles[cbProfileNames.text];
@@ -311,6 +416,11 @@ begin
   cbProfileNames.items.AddStrings(profileFile.getProfileNames);
   lsPatterns.Columns[1].AutoSize := true;
   lsPatterns.Columns[1].MinWidth := 40;
+end;
+
+procedure TfrmMain.Label5Click(Sender : TObject);
+begin
+
 end;
 
 procedure TfrmMain.tgHeaderRowChange(Sender : TObject);
@@ -340,11 +450,12 @@ begin
     gridData.FixedRows := 1;
   end;
 
-  cbDate.items.Clear;
-  cbPayee.items.clear;
-  cbNotes.items.clear;
-  cbReference.items.clear;
-  cbAmount.items.clear;
+  comboClear(cbDate);
+  comboClear(cbPayee);
+  comboClear(cbNotes);
+  comboClear(cbReference);
+  comboClear(cbAmount);
+  comboClear(cbAmountNegative);
   for col := 0 to colCount - 1 do
   begin
     colName := gridData.cols[col][0];
@@ -353,6 +464,7 @@ begin
     cbNotes.items.add(colName);
     cbReference.items.add(colName);
     cbAmount.items.add(colName);
+    cbAmountNegative.items.add(colName);
   end;
 
   // redisplay the profile to ensure the columns are set properly

@@ -1,7 +1,7 @@
 object frmMain: TfrmMain
-  Left = 431
+  Left = 691
   Height = 749
-  Top = 160
+  Top = 210
   Width = 745
   Caption = 'Ledger Importer'
   ClientHeight = 749
@@ -57,9 +57,9 @@ object frmMain: TfrmMain
     ClientWidth = 720
     TabOrder = 3
     object Label2: TLabel
-      Left = 32
+      Left = 37
       Height = 17
-      Top = 25
+      Top = 24
       Width = 36
       Caption = 'Date:'
       ParentColor = False
@@ -73,7 +73,7 @@ object frmMain: TfrmMain
       ParentColor = False
     end
     object Label4: TLabel
-      Left = 256
+      Left = 264
       Height = 17
       Top = 25
       Width = 45
@@ -81,24 +81,26 @@ object frmMain: TfrmMain
       ParentColor = False
     end
     object Label5: TLabel
-      Left = 256
+      Left = 240
       Height = 17
       Top = 69
-      Width = 58
-      Caption = 'Amount:'
+      Width = 75
+      Caption = 'Amount (+)'
       ParentColor = False
+      OnClick = Label5Click
     end
     object cbDate: TComboBox
-      Left = 96
+      Left = 88
       Height = 33
       Top = 15
       Width = 128
       ItemHeight = 0
       Style = csDropDownList
       TabOrder = 0
+      OnChange = cbDateChange
     end
     object cbPayee: TComboBox
-      Left = 96
+      Left = 88
       Height = 33
       Top = 61
       Width = 128
@@ -139,6 +141,22 @@ object frmMain: TfrmMain
       ItemHeight = 0
       Style = csDropDownList
       TabOrder = 4
+    end
+    object cbAmountNegative: TComboBox
+      Left = 560
+      Height = 33
+      Top = 61
+      Width = 128
+      ItemHeight = 0
+      Style = csDropDownList
+      TabOrder = 5
+    end
+    object Label12: TLabel
+      Left = 481
+      Height = 17
+      Top = 69
+      Width = 71
+      Caption = 'Amount (-)'
     end
   end
   object tgHeaderRow: TCheckBox
@@ -328,11 +346,13 @@ object frmMain: TfrmMain
     ParentFont = False
   end
   object btCreateLedgerFile: TButton
-    Left = 552
+    Left = 584
     Height = 33
     Top = 296
-    Width = 131
+    Width = 144
     Caption = 'Create Ledger File'
+    Font.Style = [fsBold]
+    ParentFont = False
     TabOrder = 9
     OnClick = btCreateLedgerFileClick
   end

@@ -28,6 +28,7 @@ type
     notesColumn : integer;
     refColumn : integer;
     amountColumn : integer;
+    amountNegativeColumn : integer;
     defaultInAccount : string;
     defaultOutAccount : string;
     payeeMappings : TPayeeMappings;
@@ -118,6 +119,7 @@ begin
     jsonProfile.add('notesColumn', profile^.notesColumn);
     jsonProfile.add('refColumn', profile^.refColumn);
     jsonProfile.add('amountColumn', profile^.amountColumn);
+    jsonProfile.add('amountNegativeColumn', profile^.amountNegativeColumn);
     jsonProfile.add('defaultInAccount', profile^.defaultInAccount);
     jsonProfile.add('defaultOutAccount', profile^.defaultOutAccount);
 
@@ -186,6 +188,7 @@ begin
         profile^.notesColumn := jsonProfile.get('notesColumn', -1);
         profile^.refColumn := jsonProfile.get('refColumn', -1);
         profile^.amountColumn := jsonProfile.get('amountColumn', -1);
+        profile^.amountNegativeColumn := jsonProfile.get('amountNegativeColumn', -1);
         profile^.defaultInAccount := jsonProfile.get('defaultInAccount', 'Income:Unknown');
         profile^.defaultOutAccount := jsonProfile.get('defaultOutAccount', 'Expenses:Unknown');
 

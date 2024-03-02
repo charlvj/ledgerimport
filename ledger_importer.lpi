@@ -61,6 +61,7 @@
         <Filename Value="ledger_file_form.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmLedgerFile"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit5>
       <Unit6>

@@ -24,18 +24,23 @@ function parseAmount(str : string) : currency;
 var
   negative : boolean;
 begin
-  negative := false;
-  str := StringReplace(str, '$', '', [rfReplaceAll, rfIgnoreCase]);
-  str := StringReplace(str, ',', '', [rfReplaceAll, rfIgnoreCase]);
-  if str.StartsWith('(') and str.EndsWith(')') then
+  if str = '' then
+    result := 0.0
+  else
   begin
-    str := StringReplace(str, '(', '', [rfReplaceAll, rfIgnoreCase]);
-    str := StringReplace(str, ')', '', [rfReplaceAll, rfIgnoreCase]);
-    negative := true;
+    negative := false;
+    str := StringReplace(str, '$', '', [rfReplaceAll, rfIgnoreCase]);
+    str := StringReplace(str, ',', '', [rfReplaceAll, rfIgnoreCase]);
+    if str.StartsWith('(') and str.EndsWith(')') then
+    begin
+      str := StringReplace(str, '(', '', [rfReplaceAll, rfIgnoreCase]);
+      str := StringReplace(str, ')', '', [rfReplaceAll, rfIgnoreCase]);
+      negative := true;
+    end;
+    result := StrToCurr(str);
+    if negative then
+      result := result * -1;
   end;
-  result := StrToCurr(str);
-  if negative then
-    result := result * -1;
 end;
 
 function amountToStr(amount : currency) : string;
